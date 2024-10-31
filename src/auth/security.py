@@ -6,7 +6,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from starlette import status
-import bcrypt
 from database import get_async_session, User
 
 from config import SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS, ALGORITHM
@@ -25,8 +24,7 @@ async def get_user(username: str, db: AsyncSession = Depends(get_async_session))
 
 
 def verify_password(plain_password, hashed_password):
-    password_byte_enc = plain_password.encode('utf-8')
-    return bcrypt.checkpw(password = password_byte_enc, hashed_password=hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def authentificate_user(email: str, password: str):
@@ -39,10 +37,7 @@ def authentificate_user(email: str, password: str):
 
 
 def get_password_hash(password):
-    pwd_bytes = password.encode('utf-8')
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password=pwd_bytes, salt=salt)
-    return hashed_password
+    return pwd_context.hash(password)
 
 
 def create_access_token(user_id: int, expires_minutes: int = int(ACCESS_TOKEN_EXPIRE_MINUTES)):
